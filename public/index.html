@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" href="./css/style.css">
+<title>3LPIC</title>
+<style>
+    body { font-family: Arial, sans-serif; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    th { background-color: #f2f2f2; }
+</style>
+</head>
+<body>
+
+<h2>Register</h2>
+<form method="POST" action="/register">
+  Username: <input type="text" name="username"><br>
+  Password: <input type="password" name="password"><br>
+  <button type="submit">Register</button>
+</form>
+
+<h2>Login</h2>
+<form id="loginForm">
+  Username: <input type="text" name="username"><br>
+  Password: <input type="password" name="password"><br>
+  <button type="submit">Login</button>
+</form>
+
+<h2>Upload File</h2>
+<div id="uploadFormContainer" style="display:none;">
+  <form action="/upload" method="post" enctype="multipart/form-data" onsubmit="populateUserId()">
+    <!-- Hidden input field to store UserId -->
+    <input type="hidden" name="userId" id="UserIdInput">
+    
+    <label for="language">Choose a language:</label>
+    <select name="language" id="language">
+        <option value="Python">Python</option>
+        <option value="C">C</option>
+    </select>
+    <br>
+    <label for="exercise">Choose an exercise:</label>
+    <select name="exercise" id="exercise">
+        <option value="1">Exercise 1</option>
+        <option value="2">Exercise 2</option>
+    </select>
+    <br>
+    <input type="file" name="file" required>
+    <button type="submit">Upload File</button>
+  </form>
+</div>
+
+<div id="gradesContainer" style="display:none;">
+  <h3>Your Grades</h3>
+  <table id="gradesTable">
+    <thead>
+      <tr>
+        <th>Language</th>
+        <th>Exercise</th>
+        <th>Grade</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody id="gradesList"></tbody>
+  </table>
+</div>
+
+<script>
+document.getElementById('loginForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+    const formData = new FormData(this);
+    const jsonObject = {};
+    formData.forEach((value, key) => {
+        jsonObject[key] = value;
+    });
+    fetch('/login', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(jsonObject)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.userId) {
+            localStorage.setItem('userId', data.userId);
+            document.getElementById('uploadFormContainer').style.display = 'block';
+            fetchGrades(data.userId);
+        } else {
+            console.error('Login failed');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+});
+
+function fetchGrades(userId) {
+    fetch(`/grades/${userId}`)
+    .then(response => response.json())
+    .then(data => {
+        const gradesList = document.getElementById('gradesList');
+        gradesList.innerHTML = '';
+        data.forEach(grade => {
+            const row = gradesList.insertRow();
+            const cell1 = row.insertCell(0);
+            const cell2 = row.insertCell(1);
+            const cell3 = row.insertCell(2);
+            const cell4 = row.insertCell(3);
+            cell1.textContent = grade.language;
+            cell2.textContent = grade.exercise;
+            cell3.textContent = `${grade.grade == -1 ? '-' : grade.grade}%`;
+            cell4.textContent = grade.grade === -1 ? "Awaiting Correction" : "Scored";
+        });
+        document.getElementById('gradesContainer').style.display = 'block';
+    })
+    .catch(error => {
+        console.error('Failed to fetch grades:', error);
+    });
+}
+
+window.onload = function() {
+    const userId = localStorage.getItem("userId");
+    if (userId) {
+        document.getElementById('uploadFormContainer').style.display = 'block';
+        fetchGrades(userId);
+    }
+};
+
+function populateUserId() {
+    const userId = localStorage.getItem("userId");
+    const userIdInput = document.getElementById("UserIdInput");
+    userIdInput.value = userId;
+}
+</script>
+
+</body>
+</html>

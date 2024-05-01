@@ -1,0 +1,25 @@
+{
+  "name": "3lpic",
+  "version": "1.0.0",
+  "description": "3plic project",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "start-worker": "node worker.js"
+
+  },
+  "dependencies": {
+    "amqplib": "^0.10.4",
+    "bcrypt": "^5.1.1",
+    "body-parser": "^1.20.2",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-session": "^1.18.0",
+    "multer": "^1.4.4",
+    "pg": "^8.11.5",
+    "uuid": "^9.0.1"
+  },
+  "author": "",
+  "license": "MIT",
+  "keywords": []
+}
